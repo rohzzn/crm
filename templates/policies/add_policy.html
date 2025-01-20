@@ -1,0 +1,52 @@
+{% extends "shared/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Add New Policy</h2>
+    <form method="POST" action="{{ url_for('policy.add_policy') }}" class="mt-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label">Policy Name*</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="provider" class="form-label">Provider*</label>
+                        <input type="text" class="form-control" id="provider" name="provider" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="category" class="form-label">Category*</label>
+                        <select class="form-control" id="category" name="category" required>
+                            <option value="">Select Category...</option>
+                            <option value="Life">Life Insurance</option>
+                            <option value="Health">Health Insurance</option>
+                            <option value="Vehicle">Vehicle Insurance</option>
+                            <option value="Property">Property Insurance</option>
+                            <option value="Business">Business Insurance</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check mt-4">
+                            <input type="checkbox" class="form-check-input" id="is_group" name="is_group">
+                            <label class="form-check-label" for="is_group">Is Group Policy</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="{{ url_for('policy.policies') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Add Policy</button>
+        </div>
+    </form>
+</div>
+{% endblock %} 

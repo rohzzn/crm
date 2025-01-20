@@ -1,0 +1,159 @@
+{% extends "shared/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Assign Policy</h2>
+    <form method="POST" action="{{ url_for('assigned.assign_policy') }}" class="mt-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Policy Assignment Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="policy_id" class="form-label">Select Policy*</label>
+                        <select class="form-control select2" id="policy_id" name="policy_id" required>
+                            <option value="">Choose a policy...</option>
+                            {% for policy in policies %}
+                            <option value="{{ policy.id }}">{{ policy.name }} ({{ policy.provider }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="client_id" class="form-label">Select Client*</label>
+                        <select class="form-control select2" id="client_id" name="client_id" required>
+                            <option value="">Choose a client...</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="premium_amount" class="form-label">Premium Amount (₹)*</label>
+                        <input type="number" step="0.01" class="form-control" id="premium_amount" name="premium_amount" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="payment_cycle" class="form-label">Payment Cycle*</label>
+                        <select class="form-control" id="payment_cycle" name="payment_cycle" required>
+                            <option value="">Choose payment cycle...</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="tenure_months" class="form-label">Tenure (months)*</label>
+                        <input type="number" class="form-control" id="tenure_months" name="tenure_months" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="first_receipt_date" class="form-label">First Receipt Date*</label>
+                        <input type="date" class="form-control" id="first_receipt_date" name="first_receipt_date" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="dependents-section" class="card mb-4" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Select Dependents</h5>
+                <small class="text-muted">Optional: Select dependents to include in this group policy</small>
+            </div>
+            <div class="card-body">
+                <div id="dependents-container">
+                    <!-- Dependents will be loaded here dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <a href="{{ url_for('assigned.assigned_policies') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Assign Policy</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 for policy and client dropdowns
+    $('.select2').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: function() {
+            return $(this).data('placeholder') || $(this).find('option:first').text();
+        },
+        allowClear: true,
+        selectionCssClass: 'py-1'
+    });
+
+    const policySelect = document.getElementById('policy_id');
+    const clientSelect = document.getElementById('client_id');
+    const dependentsSection = document.getElementById('dependents-section');
+    const dependentsContainer = document.getElementById('dependents-container');
+
+    // When policy is selected, check if it's a group policy
+    $('#policy_id').on('select2:select', async function() {
+        if (!this.value) return;
+        
+        try {
+            const response = await fetch(`/get-policy-details/${this.value}`);
+            const data = await response.json();
+            
+            if (data.is_group) {
+                dependentsSection.style.display = 'block';
+                // If client is already selected, load dependents
+                if (clientSelect.value) {
+                    loadDependents(clientSelect.value);
+                }
+            } else {
+                dependentsSection.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error fetching policy details:', error);
+        }
+    });
+
+    // When client is selected and it's a group policy, load dependents
+    $('#client_id').on('select2:select', async function() {
+        if (!this.value) return;
+        
+        const policyResponse = await fetch(`/get-policy-details/${policySelect.value}`);
+        const policyData = await policyResponse.json();
+        
+        if (policyData.is_group) {
+            loadDependents(this.value);
+        }
+    });
+
+    async function loadDependents(clientId) {
+        try {
+            const response = await fetch(`/get-client-dependents/${clientId}`);
+            const dependents = await response.json();
+            
+            dependentsContainer.innerHTML = dependents.length ? 
+                `<div class="row">
+                    ${dependents.map(dep => `
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dependent_ids" value="${dep.id}" id="dep_${dep.id}">
+                                <label class="form-check-label" for="dep_${dep.id}">
+                                    ${dep.name} (${dep.relationship})
+                                </label>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>` :
+                '<p class="text-muted">No dependents found for this client.</p>';
+        } catch (error) {
+            console.error('Error loading dependents:', error);
+            dependentsContainer.innerHTML = '<p class="text-danger">Error loading dependents.</p>';
+        }
+    }
+});
+</script>
+{% endblock %} 

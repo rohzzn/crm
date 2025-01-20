@@ -1,0 +1,125 @@
+{% extends "shared/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Assigned Policies</h2>
+        <a href="{{ url_for('assigned.assign_policy') }}" class="btn btn-primary">Assign Policy</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <form class="d-flex" method="GET">
+                <input type="search" name="search" class="form-control me-2" placeholder="Search by policy or client name..." value="{{ search_query }}">
+                <button class="btn btn-outline-primary" type="submit">Search</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Policy Name</th>
+                            <th>Client</th>
+                            <th>Premium</th>
+                            <th>Payment Cycle</th>
+                            <th>First Receipt</th>
+                            <th>Expiry</th>
+                            <th>Status</th>
+                            <th>Dependents</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assigned in assigned_policies %}
+                        <tr>
+                            <td>{{ assigned.policy.name }}</td>
+                            <td>{{ assigned.client.full_name }}</td>
+                            <td>₹{{ "%.2f"|format(assigned.premium_amount) }}</td>
+                            <td>{{ assigned.payment_cycle.title() }}</td>
+                            <td>{{ assigned.first_receipt_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ assigned.expiry_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if assigned.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger">Expired</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if assigned.policy.is_group %}
+                                    {% if assigned.dependents|length > 0 %}
+                                    <span class="badge bg-info">{{ assigned.dependents|length }} dependents</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No dependents</span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="badge bg-secondary">Individual</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('assigned.edit_assigned_policy', id=assigned.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="confirmDelete({{ assigned.id }}, '{{ assigned.policy.name }}')">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">No assigned policies found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if pagination.pages > 1 %}
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% for page in pagination.iter_pages() %}
+                        {% if page %}
+                            <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('assigned.assigned_policies', page=page, search=search_query) }}">{{ page }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the assigned policy: <span id="policyNameSpan"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(id, policyName) {
+    document.getElementById('policyNameSpan').textContent = policyName;
+    document.getElementById('deleteForm').action = `/assigned-policies/delete/${id}`;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %} 

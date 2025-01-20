@@ -1,0 +1,89 @@
+{% extends "shared/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Assigned Policy</h2>
+    <form method="POST" class="mt-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Policy Assignment Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Policy</label>
+                        <input type="text" class="form-control" value="{{ assigned_policy.policy.name }}" disabled>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Client</label>
+                        <input type="text" class="form-control" value="{{ assigned_policy.client.full_name }}" disabled>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="premium_amount" class="form-label">Premium Amount (₹)*</label>
+                        <input type="number" step="0.01" class="form-control" id="premium_amount" name="premium_amount" 
+                               value="{{ assigned_policy.premium_amount }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="payment_cycle" class="form-label">Payment Cycle*</label>
+                        <select class="form-control" id="payment_cycle" name="payment_cycle" required>
+                            <option value="monthly" {% if assigned_policy.payment_cycle == 'monthly' %}selected{% endif %}>Monthly</option>
+                            <option value="quarterly" {% if assigned_policy.payment_cycle == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                            <option value="yearly" {% if assigned_policy.payment_cycle == 'yearly' %}selected{% endif %}>Yearly</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="tenure_months" class="form-label">Tenure (months)*</label>
+                        <input type="number" class="form-control" id="tenure_months" name="tenure_months" 
+                               value="{{ assigned_policy.tenure_months }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="first_receipt_date" class="form-label">First Receipt Date*</label>
+                        <input type="date" class="form-control" id="first_receipt_date" name="first_receipt_date" 
+                               value="{{ assigned_policy.first_receipt_date.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if assigned_policy.policy.is_group %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Dependents</h5>
+                <small class="text-muted">Select dependents to include in this group policy</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for dependent in client_dependents %}
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="dependent_ids" 
+                                   value="{{ dependent.id }}" id="dep_{{ dependent.id }}"
+                                   {% if dependent in assigned_policy.dependents %}checked{% endif %}>
+                            <label class="form-check-label" for="dep_{{ dependent.id }}">
+                                {{ dependent.full_name }} ({{ dependent.relationship }})
+                            </label>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <p class="text-muted">No dependents found for this client.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <a href="{{ url_for('assigned.assigned_policies') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %} 

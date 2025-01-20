@@ -1,0 +1,179 @@
+{% extends "shared/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Client</h2>
+    <form method="POST" action="{{ url_for('client.edit_client', client_id=client.id) }}">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Client Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="first_name" class="form-label">First Name*</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ client.first_name }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="last_name" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ client.last_name }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ client.email }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="phone" class="form-label">Phone (Indian Number)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">+91</span>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ client.phone }}" pattern="[0-9]{10}" maxlength="10" title="Phone number must be exactly 10 digits">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="date_of_birth" class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ client.date_of_birth.strftime('%Y-%m-%d') if client.date_of_birth }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="sex" class="form-label">Sex</label>
+                        <select class="form-control" id="sex" name="sex">
+                            <option value="">Select...</option>
+                            <option value="Male" {% if client.sex == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if client.sex == 'Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if client.sex == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea class="form-control" id="address" name="address" rows="3">{{ client.address }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Dependents</h5>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addDependentFields()">Add Dependent</button>
+            </div>
+            <div class="card-body">
+                <div id="dependents-container">
+                    {% for dependent in client.dependents %}
+                    <div class="dependent-entry card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="card-title mb-0">Dependent Information</h6>
+                                <form action="{{ url_for('client.delete_dependent', dependent_id=dependent.id) }}" method="POST" class="delete-dependent-form">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this dependent?')">Remove</button>
+                                </form>
+                            </div>
+                            <input type="hidden" name="dependent_id[]" value="{{ dependent.id }}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">First Name*</label>
+                                    <input type="text" class="form-control" name="dependent_first_name[]" value="{{ dependent.first_name }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" name="dependent_last_name[]" value="{{ dependent.last_name }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" name="dependent_date_of_birth[]" value="{{ dependent.date_of_birth.strftime('%Y-%m-%d') if dependent.date_of_birth }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Sex</label>
+                                    <select class="form-control" name="dependent_sex[]">
+                                        <option value="">Select...</option>
+                                        <option value="Male" {% if dependent.sex == 'Male' %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if dependent.sex == 'Female' %}selected{% endif %}>Female</option>
+                                        <option value="Other" {% if dependent.sex == 'Other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Relationship*</label>
+                                <select class="form-control" name="dependent_relationship[]" required>
+                                    <option value="">Select...</option>
+                                    <option value="Spouse" {% if dependent.relationship == 'Spouse' %}selected{% endif %}>Spouse</option>
+                                    <option value="Child" {% if dependent.relationship == 'Child' %}selected{% endif %}>Child</option>
+                                    <option value="Parent" {% if dependent.relationship == 'Parent' %}selected{% endif %}>Parent</option>
+                                    <option value="Sibling" {% if dependent.relationship == 'Sibling' %}selected{% endif %}>Sibling</option>
+                                    <option value="Other" {% if dependent.relationship == 'Other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Client</button>
+        <a href="{{ url_for('client.clients') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<template id="dependent-template">
+    <div class="dependent-entry card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="card-title mb-0">Dependent Information</h6>
+                <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.dependent-entry').remove()">Remove</button>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">First Name*</label>
+                    <input type="text" class="form-control" name="dependent_first_name[]" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" name="dependent_last_name[]">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" name="dependent_date_of_birth[]">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Sex</label>
+                    <select class="form-control" name="dependent_sex[]">
+                        <option value="">Select...</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Relationship*</label>
+                <select class="form-control" name="dependent_relationship[]" required>
+                    <option value="">Select...</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Child">Child</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+function addDependentFields() {
+    const template = document.getElementById('dependent-template');
+    const container = document.getElementById('dependents-container');
+    const clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+}
+
+const deleteUrl = "{{ url_for('client.delete_dependent', dependent_id=0) }}".slice(0, -1);
+</script>
+{% endblock %}

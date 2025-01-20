@@ -1,0 +1,131 @@
+{% extends "shared/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Add New Client</h2>
+    <form method="POST" action="{{ url_for('client.add_client') }}" class="mt-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Client Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="first_name" class="form-label">First Name*</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="last_name" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="phone" class="form-label">Phone (Indian Number)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">+91</span>
+                            <input type="tel" class="form-control" id="phone" name="phone" pattern="[0-9]{10}" maxlength="10" title="Phone number must be exactly 10 digits">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="date_of_birth" class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="sex" class="form-label">Sex</label>
+                        <select class="form-control" id="sex" name="sex">
+                            <option value="">Select...</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Dependents</h5>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addDependentFields()">Add Dependent</button>
+            </div>
+            <div class="card-body">
+                <div id="dependents-container">
+                    <!-- Dependent fields will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <a href="{{ url_for('client.clients') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Add Client</button>
+        </div>
+    </form>
+</div>
+
+<template id="dependent-template">
+    <div class="dependent-entry card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="card-title mb-0">Dependent Information</h6>
+                <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.dependent-entry').remove()">Remove</button>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">First Name*</label>
+                    <input type="text" class="form-control" name="dependent_first_name[]" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" name="dependent_last_name[]">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" name="dependent_date_of_birth[]">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Sex</label>
+                    <select class="form-control" name="dependent_sex[]">
+                        <option value="">Select...</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Relationship*</label>
+                <select class="form-control" name="dependent_relationship[]" required>
+                    <option value="">Select...</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Child">Child</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+function addDependentFields() {
+    const template = document.getElementById('dependent-template');
+    const container = document.getElementById('dependents-container');
+    const clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+}
+</script>
+{% endblock %}
